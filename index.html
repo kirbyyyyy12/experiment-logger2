@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Science Log - Experiment Logger</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -16,41 +19,58 @@
 
     <!-- Dark Mode Toggle -->
     <div class="toggle-container">
-      <button id="darkModeToggle">🌙 Toggle Dark Mode</button>
+      <button id="darkModeToggle">
+        <i class="fas fa-moon"></i> Toggle Dark Mode
+      </button>
     </div>
 
     <!-- Navigation Menu -->
     <nav>
       <ul class="menu">
-        <li><button onclick="showSection('experimentForm')">🧪 New Experiment</button></li>
-        <li><button onclick="showSection('dashboard')">📊 Dashboard</button></li>
-        <li><button onclick="showSection('exportTools')">📤 Export & Share</button></li>
-        <li><button onclick="showSection('graphSection')">📈 Graphs</button></li>
-        <li><button onclick="showSection('versionHistory')">🕒 History</button></li>
-        <li><button onclick="showSection('log')">📚 Log</button></li>
+        <li><button onclick="showSection('experimentForm')"><i class="fas fa-flask"></i> New Experiment</button></li>
+        <li><button onclick="showSection('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button></li>
+        <li><button onclick="showSection('exportTools')"><i class="fas fa-file-export"></i> Export & Share</button></li>
+        <li><button onclick="showSection('graphSection')"><i class="fas fa-chart-line"></i> Graphs</button></li>
+        <li><button onclick="showSection('versionHistory')"><i class="fas fa-history"></i> History</button></li>
+        <li><button onclick="showSection('log')"><i class="fas fa-book"></i> Log</button></li>
       </ul>
     </nav>
 
     <!-- Experiment Form -->
     <form id="experimentForm" class="section">
-      <h2>🧪 Create New Experiment</h2>
-      <input type="text" id="title" placeholder="🔬 Enter experiment title..." required />
+      <h2><i class="fas fa-flask"></i> Create New Experiment</h2>
+      
+      <label for="title">Experiment Title</label>
+      <input type="text" id="title" placeholder="Enter experiment title..." required />
+      
+      <label for="datetime">Date & Time</label>
       <input type="datetime-local" id="datetime" required />
-      <textarea id="description" placeholder="🧠 Describe the purpose of the experiment..." rows="2" required></textarea>
-      <input type="text" id="researchers" placeholder="👩‍🔬 Researchers involved..." required />
-      <input type="text" id="tags" placeholder="🏷️ Category or tags (e.g., Biology, Chemistry)" required />
+      
+      <label for="description">Purpose</label>
+      <textarea id="description" placeholder="Describe the purpose of the experiment..." rows="2" required></textarea>
+      
+      <label for="researchers">Researchers</label>
+      <input type="text" id="researchers" placeholder="Researchers involved..." required />
+      
+      <label for="tags">Categories/Tags</label>
+      <input type="text" id="tags" placeholder="Biology, Chemistry, etc." required />
 
-      <textarea id="steps" placeholder="📋 Step-by-step procedure..." rows="3" required></textarea>
-      <label for="media">📎 Attach images/videos:</label>
+      <label for="steps">Procedure</label>
+      <textarea id="steps" placeholder="Step-by-step procedure..." rows="3" required></textarea>
+      
+      <label for="media">Attach Media</label>
       <input type="file" id="media" name="media" accept="image/*,video/*" multiple />
 
-      <textarea id="materials" placeholder="🧪 List the materials used..." rows="2" required></textarea>
+      <label for="materials">Materials</label>
+      <textarea id="materials" placeholder="List the materials used..." rows="2" required></textarea>
 
-      <textarea id="observations" placeholder="🔍 What did you observe?" rows="3" required></textarea>
-      <label for="observationMedia">📎 Upload observation images/videos:</label>
+      <label for="observations">Observations</label>
+      <textarea id="observations" placeholder="What did you observe?" rows="3" required></textarea>
+      
+      <label for="observationMedia">Observation Media</label>
       <input type="file" id="observationMedia" name="observationMedia" accept="image/*,video/*" multiple />
 
-      <label for="status">📌 Status:</label>
+      <label for="status">Status</label>
       <select id="status">
         <option value="Draft">Draft</option>
         <option value="In Progress">In Progress</option>
@@ -58,59 +78,73 @@
         <option value="Archived">Archived</option>
       </select>
 
-      <button type="submit">✅ Log This Experiment</button>
+      <button type="submit"><i class="fas fa-save"></i> Log This Experiment</button>
     </form>
 
     <!-- Dashboard Section -->
     <section id="dashboard" class="section">
-      <h2>📊 Dashboard</h2>
-      <div id="quickStats">Quick Stats: <span id="statsSummary">0 experiments logged this month</span></div>
+      <h2><i class="fas fa-chart-pie"></i> Dashboard</h2>
+      <div id="quickStats">
+        <i class="fas fa-clipboard-list"></i> Quick Stats: <span id="statsSummary">0 experiments logged this month</span>
+      </div>
       
-      <input type="text" id="searchInput" placeholder="🔍 Search by title, tag, or researcher..." />
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search experiments..." />
+        <i class="fas fa-search search-icon"></i>
+      </div>
 
       <div id="filters">
-        <label for="filterTag">Filter by Tag:</label>
-        <input type="text" id="filterTag" placeholder="e.g., Chemistry" />
+        <div class="filter-group">
+          <label for="filterTag">Filter by Tag</label>
+          <input type="text" id="filterTag" placeholder="e.g., Chemistry" />
+        </div>
 
-        <label for="filterDate">Filter by Date:</label>
-        <input type="date" id="filterDate" />
+        <div class="filter-group">
+          <label for="filterDate">Filter by Date</label>
+          <input type="date" id="filterDate" />
+        </div>
 
-        <label for="filterStatus">Filter by Status:</label>
-        <select id="filterStatus">
-          <option value="">All</option>
-          <option value="Draft">Draft</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Archived">Archived</option>
-        </select>
+        <div class="filter-group">
+          <label for="filterStatus">Filter by Status</label>
+          <select id="filterStatus">
+            <option value="">All</option>
+            <option value="Draft">Draft</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </div>
       </div>
     </section>
 
     <!-- Export Tools Section -->
     <section id="exportTools" class="section">
-      <h2>📤 Export & Sharing</h2>
-      <button id="exportCSV">Export as CSV</button>
-      <button id="exportPDF">Export as PDF</button>
-      <button id="exportMD">Export as Markdown</button>
+      <h2><i class="fas fa-file-export"></i> Export & Sharing</h2>
+      <button id="exportCSV"><i class="fas fa-file-csv"></i> Export as CSV</button>
+      <button id="exportPDF"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+      <button id="exportMD"><i class="fas fa-file-code"></i> Export as Markdown</button>
     </section>
 
     <!-- Graph Section -->
     <section id="graphSection" class="section">
-      <h2>📈 Graphs & Data Charts</h2>
+      <h2><i class="fas fa-chart-line"></i> Graphs & Data Charts</h2>
       <canvas id="experimentChart"></canvas>
     </section>
 
     <!-- Version History Section -->
     <section id="versionHistory" class="section">
-      <h2>🕒 Version History</h2>
-      <button id="undo">Undo</button>
-      <button id="redo">Redo</button>
+      <h2><i class="fas fa-history"></i> Version History</h2>
+      <div class="history-controls">
+        <button id="undo"><i class="fas fa-undo"></i> Undo</button>
+        <button id="redo"><i class="fas fa-redo"></i> Redo</button>
+      </div>
       <div id="historyLog"></div>
     </section>
 
     <!-- Experiment Log Section -->
     <div id="log" class="section">
-      <p class="empty-log-message">No experiments logged yet.</p>
+      <h2><i class="fas fa-book"></i> Experiment Log</h2>
+      <p class="empty-log-message">No experiments logged yet. Create a new experiment to get started.</p>
     </div>
 
   </div>
@@ -127,6 +161,15 @@
       const darkModeToggle = document.getElementById('darkModeToggle');
       darkModeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
+        // Change icon based on mode
+        const icon = darkModeToggle.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+          icon.classList.remove('fa-moon');
+          icon.classList.add('fa-sun');
+        } else {
+          icon.classList.remove('fa-sun');
+          icon.classList.add('fa-moon');
+        }
       });
     });
   </script>
