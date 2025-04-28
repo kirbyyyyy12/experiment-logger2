@@ -29,9 +29,6 @@
       <ul class="menu">
         <li><button onclick="showSection('experimentForm')"><i class="fas fa-flask"></i> New Experiment</button></li>
         <li><button onclick="showSection('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button></li>
-        <li><button onclick="showSection('exportTools')"><i class="fas fa-file-export"></i> Export & Share</button></li>
-        <li><button onclick="showSection('graphSection')"><i class="fas fa-chart-line"></i> Graphs</button></li>
-        <li><button onclick="showSection('versionHistory')"><i class="fas fa-history"></i> History</button></li>
         <li><button onclick="showSection('log')"><i class="fas fa-book"></i> Log</button></li>
       </ul>
     </nav>
@@ -39,12 +36,13 @@
     <!-- Experiment Form -->
     <form id="experimentForm" class="section">
       <h2><i class="fas fa-flask"></i> Create New Experiment</h2>
+      <input type="hidden" id="editingId" value="">
       
       <label for="title">Experiment Title</label>
       <input type="text" id="title" placeholder="Enter experiment title..." required />
       
-      <label for="datetime">Date & Time</label>
-      <input type="datetime-local" id="datetime" required />
+      <label for="date">Date</label>
+      <input type="date" id="date" required />
       
       <label for="description">Purpose</label>
       <textarea id="description" placeholder="Describe the purpose of the experiment..." rows="2" required></textarea>
@@ -78,14 +76,14 @@
         <option value="Archived">Archived</option>
       </select>
 
-      <button type="submit"><i class="fas fa-save"></i> Log This Experiment</button>
+      <button type="submit" id="submitExperiment"><i class="fas fa-save"></i> <span id="submitButtonText">Log This Experiment</span></button>
     </form>
 
     <!-- Dashboard Section -->
     <section id="dashboard" class="section">
       <h2><i class="fas fa-chart-pie"></i> Dashboard</h2>
       <div id="quickStats">
-        <i class="fas fa-clipboard-list"></i> Quick Stats: <span id="statsSummary">0 experiments logged this month</span>
+        <i class="fas fa-clipboard-list"></i> Quick Stats: <span id="statsSummary">0 experiments logged</span>
       </div>
       
       <div class="search-container">
@@ -115,30 +113,6 @@
           </select>
         </div>
       </div>
-    </section>
-
-    <!-- Export Tools Section -->
-    <section id="exportTools" class="section">
-      <h2><i class="fas fa-file-export"></i> Export & Sharing</h2>
-      <button id="exportCSV"><i class="fas fa-file-csv"></i> Export as CSV</button>
-      <button id="exportPDF"><i class="fas fa-file-pdf"></i> Export as PDF</button>
-      <button id="exportMD"><i class="fas fa-file-code"></i> Export as Markdown</button>
-    </section>
-
-    <!-- Graph Section -->
-    <section id="graphSection" class="section">
-      <h2><i class="fas fa-chart-line"></i> Graphs & Data Charts</h2>
-      <canvas id="experimentChart"></canvas>
-    </section>
-
-    <!-- Version History Section -->
-    <section id="versionHistory" class="section">
-      <h2><i class="fas fa-history"></i> Version History</h2>
-      <div class="history-controls">
-        <button id="undo"><i class="fas fa-undo"></i> Undo</button>
-        <button id="redo"><i class="fas fa-redo"></i> Redo</button>
-      </div>
-      <div id="historyLog"></div>
     </section>
 
     <!-- Experiment Log Section -->
