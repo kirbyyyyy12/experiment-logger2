@@ -1,19 +1,13 @@
 let experiments = [];
-let historyStack = [];
-let redoStack = [];
 
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize the application
+  loadExperiments();
   updateDashboard();
   updateLog();
   
   // Setup event listeners
   document.getElementById('experimentForm').addEventListener('submit', handleExperimentSubmit);
-  document.getElementById('undo').addEventListener('click', handleUndo);
-  document.getElementById('redo').addEventListener('click', handleRedo);
-  document.getElementById('exportCSV').addEventListener('click', handleExportCSV);
-  document.getElementById('exportPDF').addEventListener('click', handleExportPDF);
-  document.getElementById('exportMD').addEventListener('click', handleExportMD);
   
   // Setup search functionality
   document.getElementById('searchInput').addEventListener('input', handleSearch);
@@ -22,14 +16,30 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('filterStatus').addEventListener('change', handleFilters);
 });
 
+// Load experiments from local storage
+function loadExperiments() {
+  const savedExperiments = localStorage.getItem('scienceLogExperiments');
+  if (savedExperiments) {
+    experiments = JSON.parse(savedExperiments);
+  }
+}
+
+// Save experiments to local storage
+function saveExperiments() {
+  localStorage.setItem('scienceLogExperiments', JSON.stringify(experiments));
+}
+
 // Handle experiment form submission
 function handleExperimentSubmit(e) {
   e.preventDefault();
   
+  const editingId = document.getElementById('editingId').value;
+  const isEditing = editingId !== '';
+  
   const experiment = {
-    id: Date.now(), // Unique ID for the experiment
+    id: isEditing ? parseInt(editingId) : Date.now(), // Unique ID for the experiment
     title: document.getElementById('title').value,
-    datetime: document.getElementById('datetime').value,
+    date: document.getElementById('date').value,
     description: document.getElementById('description').value,
     researchers: document.getElementById('researchers').value,
     tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
@@ -39,26 +49,40 @@ function handleExperimentSubmit(e) {
     status: document.getElementById('status').value,
     media: Array.from(document.getElementById('media').files).map(file => file.name),
     observationMedia: Array.from(document.getElementById('observationMedia').files).map(file => file.name),
-    createdAt: new Date().toISOString()
+    createdAt: isEditing ? experiments.find(exp => exp.id === parseInt(editingId)).createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
   
-  // Add experiment and update history
-  experiments.push(experiment);
-  historyStack.push(JSON.parse(JSON.stringify(experiments)));
-  redoStack = [];
+  if (isEditing) {
+    // Update existing experiment
+    const index = experiments.findIndex(exp => exp.id === parseInt(editingId));
+    if (index !== -1) {
+      experiments[index] = experiment;
+      showNotification('✅ Experiment updated successfully!');
+    }
+  } else {
+    // Add new experiment
+    experiments.push(experiment);
+    showNotification('✅ Experiment logged successfully!');
+  }
   
-  // Show success message
-  showNotification('✅ Experiment logged successfully!');
-  
-  // Update UI
+  // Save and update UI
+  saveExperiments();
   updateDashboard();
   updateLog();
   
-  // Reset form
-  this.reset();
+  // Reset form and editing state
+  resetForm();
   
   // Switch to log view
   showSection('log');
+}
+
+// Reset form
+function resetForm() {
+  document.getElementById('experimentForm').reset();
+  document.getElementById('editingId').value = '';
+  document.getElementById('submitButtonText').textContent = 'Log This Experiment';
 }
 
 // Display notification
@@ -97,7 +121,7 @@ function updateDashboard() {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const thisMonthExperiments = experiments.filter(exp => {
-    const expDate = new Date(exp.datetime);
+    const expDate = new Date(exp.date);
     return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
   });
   
@@ -124,7 +148,7 @@ function updateLog() {
 
   // Sort experiments by date (newest first)
   const sortedExperiments = [...experiments].sort((a, b) => 
-    new Date(b.datetime) - new Date(a.datetime)
+    new Date(b.date) - new Date(a.date)
   );
 
   // Create log entries
@@ -133,13 +157,11 @@ function updateLog() {
     expDiv.className = `experiment-entry ${exp.status.toLowerCase().replace(' ', '-')}`;
     
     // Format date
-    const expDate = new Date(exp.datetime);
+    const expDate = new Date(exp.date);
     const formattedDate = expDate.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
     
     // Build experiment entry
@@ -156,19 +178,41 @@ function updateLog() {
         ${exp.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
       </div>
       <p class="exp-description">${exp.description}</p>
-      <button class="view-details-btn" data-id="${exp.id}">
-        <i class="fas fa-eye"></i> View Details
-      </button>
+      <div class="experiment-actions">
+        <button class="edit-btn" data-id="${exp.id}">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="view-details-btn" data-id="${exp.id}">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+        <button class="delete-btn" data-id="${exp.id}">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
     `;
     
     log.appendChild(expDiv);
   });
   
-  // Add event listeners to view details buttons
+  // Add event listeners to buttons
   document.querySelectorAll('.view-details-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const expId = parseInt(this.getAttribute('data-id'));
       viewExperimentDetails(expId);
+    });
+  });
+  
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const expId = parseInt(this.getAttribute('data-id'));
+      editExperiment(expId);
+    });
+  });
+  
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const expId = parseInt(this.getAttribute('data-id'));
+      deleteExperiment(expId);
     });
   });
 }
@@ -182,6 +226,14 @@ function viewExperimentDetails(id) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   
+  // Format date
+  const expDate = new Date(experiment.date);
+  const formattedDate = expDate.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric'
+  });
+  
   // Create modal content
   modal.innerHTML = `
     <div class="modal-content">
@@ -191,7 +243,7 @@ function viewExperimentDetails(id) {
       </div>
       <div class="modal-body">
         <div class="experiment-meta">
-          <p><strong><i class="fas fa-calendar"></i> Date:</strong> ${new Date(experiment.datetime).toLocaleString()}</p>
+          <p><strong><i class="fas fa-calendar"></i> Date:</strong> ${formattedDate}</p>
           <p><strong><i class="fas fa-users"></i> Researchers:</strong> ${experiment.researchers}</p>
           <p><strong><i class="fas fa-tag"></i> Status:</strong> ${experiment.status}</p>
           <p><strong><i class="fas fa-tags"></i> Tags:</strong> ${experiment.tags.join(', ')}</p>
@@ -228,129 +280,4 @@ function viewExperimentDetails(id) {
   `;
   
   // Add to body
-  document.body.appendChild(modal);
-  
-  // Setup event listeners
-  modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
-  modal.querySelector('.close-btn').addEventListener('click', () => modal.remove());
-  
-  // Close on background click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
-  
-  // Setup edit button
-  modal.querySelector('.edit-btn').addEventListener('click', function() {
-    const expId = parseInt(this.getAttribute('data-id'));
-    editExperiment(expId);
-    modal.remove();
-  });
-  
-  // Setup delete button
-  modal.querySelector('.delete-btn').addEventListener('click', function() {
-    const expId = parseInt(this.getAttribute('data-id'));
-    deleteExperiment(expId);
-    modal.remove();
-  });
-}
-
-// Placeholder for edit function
-function editExperiment(id) {
-  showNotification('Edit functionality coming soon!', 'info');
-}
-
-// Delete experiment
-function deleteExperiment(id) {
-  // Find index
-  const index = experiments.findIndex(exp => exp.id === id);
-  if (index === -1) return;
-  
-  // Remove experiment
-  experiments.splice(index, 1);
-  
-  // Update history
-  historyStack.push(JSON.parse(JSON.stringify(experiments)));
-  redoStack = [];
-  
-  // Update UI
-  updateDashboard();
-  updateLog();
-  
-  // Show notification
-  showNotification('Experiment deleted successfully');
-}
-
-// Handle search
-function handleSearch() {
-  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-  filterExperiments();
-}
-
-// Handle filters
-function handleFilters() {
-  filterExperiments();
-}
-
-// Filter experiments based on search and filters
-function filterExperiments() {
-  // Get filter values
-  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-  const tagFilter = document.getElementById('filterTag').value.toLowerCase();
-  const dateFilter = document.getElementById('filterDate').value;
-  const statusFilter = document.getElementById('filterStatus').value;
-  
-  // Select all experiment entries
-  const entries = document.querySelectorAll('.experiment-entry');
-  
-  // Filter experiments
-  entries.forEach(entry => {
-    const title = entry.querySelector('h3').textContent.toLowerCase();
-    const status = entry.querySelector('.exp-status').textContent.toLowerCase();
-    const researchers = entry.querySelector('.exp-researchers').textContent.toLowerCase();
-    const tags = Array.from(entry.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase());
-    const dateElement = entry.querySelector('.exp-date').textContent;
-    
-    // Check if all filters match
-    const matchesSearch = !searchTerm || 
-      title.includes(searchTerm) || 
-      researchers.includes(searchTerm) || 
-      tags.some(tag => tag.includes(searchTerm));
-    
-    const matchesTag = !tagFilter || tags.some(tag => tag.includes(tagFilter));
-    
-    const matchesStatus = !statusFilter || status.includes(statusFilter.toLowerCase());
-    
-    const matchesDate = !dateFilter || dateElement.includes(dateFilter);
-    
-    // Show or hide based on filters
-    if (matchesSearch && matchesTag && matchesStatus && matchesDate) {
-      entry.style.display = 'block';
-    } else {
-      entry.style.display = 'none';
-    }
-  });
-}
-
-// Undo
-function handleUndo() {
-  if (historyStack.length > 1) {
-    redoStack.push(historyStack.pop());
-    experiments = JSON.parse(JSON.stringify(historyStack[historyStack.length - 1]));
-    updateDashboard();
-    updateLog();
-    showNotification('Undo successful');
-  } else {
-    showNotification('Nothing to undo', 'info');
-  }
-}
-
-// Redo
-function handleRedo() {
-  if (redoStack.length > 0) {
-    historyStack.push(JSON.parse(JSON.stringify(redoStack.pop())));
-    experiments = JSON.parse(JSON.stringify(historyStack[historyStack.length - 1]));
-    updateDashboard();
-    updateLog();
-    showNotification('Redo successful');
-  } else {
-    showNotification('Nothing to redo',
+  document.body.appendChild(modal
